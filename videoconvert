@@ -1,0 +1,47 @@
+#!/usr/bin/python
+import os
+import sys
+
+# self written imports
+import videoconvert.Conf as Conf
+import videoconvert.SystemCall as SystemCall
+
+# check if the --config option is given
+commandCall = sys.argv.pop(0)
+arguments = sys.argv
+conf = Conf.Configuration()
+confFile = conf.getConfFile()
+
+# if no config file exists or --config is given ask the user for his preffered settings
+# otherwise read the config file
+if ((os.path.exists(confFile) == False) or (len(arguments) >= 1 and arguments[0] == '--config')):
+    arguments.pop(0)
+    conf.getNewConfig()
+else:
+    conf.readConfig()
+
+# read the remaining arguments from the command line
+if len(arguments) >= 1:
+    if os.path.isdir(arguments[0]):
+        inDir = arguments.pop(0)
+        inFile = ''
+    else:
+        inFile = arguments.pop(0)
+        inDir = ''
+    if len(arguments) >= 1:
+        name = arguments.pop(0)
+    else:
+        name = 'vdr2mpg'
+
+    # if a directory is given try to sync vdr files in that directory and convert them
+    # if a file is given only convert it
+    systemCall = SystemCall.SystemCall(conf)
+    if inDir != '':
+        systemCall.sync(inDir,name)
+    elif inFile != '':
+        systemCall.convertFile(inFile,os.getcwd(),os.getcwd())
+
+else:
+    print 'Usage : '+commandCall+' [--config] <input directory> [<name>]'
+
+#print conf.toString()
