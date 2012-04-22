@@ -10,12 +10,14 @@ class SystemCall():
         self.configuration = configuration
         self.outDir = self.configuration.getAppTmpDir()
         self.currentDir = self.os.getcwd()
-        self.audioCodec = ''
+        # FIXME: get this automatically somehow
+        self.audioCodec = 'mp2'
         self.bf = '\033[0;1m'
         self.bfBlue = '\033[34;1m'
         self.bfYellow = '\033[1;33;40m'
         self.yellow = '\033[0;33;40m'
         self.nf = '\033[0;0m'
+        self.prefix = ''
 
     def sync(self,inDir,name):
         if self.os.path.isabs(inDir):
@@ -26,45 +28,69 @@ class SystemCall():
         self.currentDir = self.os.getcwd()
         for f in files:
             if self.re.search('^[0-9]+\.vdr$',f):
-                self.__demultiplex(inDir,f)
-                self.__multiplex(name,f)
+                self.prefix = f.split('.')[0]
+                #self.__demultiplex(inDir,f)
+                #self.__multiplex(name,f)
+                print self.bfYellow+'Copying vdr file '+f+' to temporary directory.'+self.nf
+                self.shutil.copy2(inDir+'/'+f,self.outDir+'/'+f)
+                syncCommand = 'ffmpeg -i '+self.outDir+'/'+f+' -acodec copy -vcodec copy -async 2 '
+                syncCommand += self.outDir+'/'+name+'-'+self.prefix+'.mpg'
+                self.__callSystemCommand(syncCommand)
+                self.os.remove(self.outDir+'/'+f)
         self.os.chdir(self.currentDir)
         self.joinMultipleFiles(name)
         self.convertFile(name+'.mpg',self.outDir,self.currentDir)
 
     def __demultiplex(self,inDir,fileName):
+        #self.prefix = fileName.split('.')[0]
         self.os.chdir(inDir)
         demultiplexCommand = 'projectx -out '+self.outDir+' '+fileName
-        self.__callSystemCommand(demultiplexCommand)
+        extractVideoCommand = 'ffmpeg -i '+fileName+' -vcodec copy -an '
+        extractVideoCommand += self.outDir+'/'+self.prefix+'.m2v'
+        extractAudioCommand = 'ffmpeg -i '+fileName+' -acodec copy -vn '
+        extractAudioCommand += self.outDir+'/'+self.prefix+'.'+self.audioCodec
+        #self.__callSystemCommand(demultiplexCommand)
+        self.__callSystemCommand(extractVideoCommand)
+        self.__callSystemCommand(extractAudioCommand)
 
     def __multiplex(self,name,fileName):
         self.os.chdir(self.outDir)
-        prefix = fileName.split('.')[0]
-        if self.os.path.exists(prefix+'.ac3'):
+        if self.os.path.exists(self.prefix+'.ac3'):
             self.audioCodec = 'ac3'
         else:
             self.audioCodec = 'mp2'
-        multiplexCommand = 'mplex -f 9 -o '+name+'-'+prefix+'.mpg '+prefix+'.'+self.audioCodec+' '+prefix+'.m2v'
+        multiplexCommand = 'mplex -f 9 -o '+name+'-'+self.prefix+'-tmp.mpg '
+        multiplexCommand += self.prefix+'.'+self.audioCodec+' '+self.prefix+'.m2v'
         self.__callSystemCommand(multiplexCommand)
+        syncCommand = 'ffmpeg -i '+name+'-'+self.prefix+'-tmp.mpg -acodec copy -vcodec copy -async 2 '+self.prefix+'.mpg'
+        self.__callSystemCommand(syncCommand)
+        self.os.remove(self.prefix+'-tmp.mpg')
         
         files = self.os.listdir(self.outDir)
         for f in files:
-            if self.re.search('^'+prefix, f):
+            if self.re.search('^'+self.prefix, f):
                 self.os.remove(f)
 
     def joinMultipleFiles(self,name):
         files = self.os.listdir(self.outDir)
         filesString = ''
-        for f in files:
-            if self.re.search('^'+name, f):
-                filesString += self.outDir+'/'+f+' '
-        filesString = filesString.strip()
-        concatCommand = 'cat '+filesString+' > '+self.outDir+'/'+name+'.mpg'
-        self.__callSystemCommand(concatCommand)
+        # TODO: just a debug output, has to be removed
+        print self.bfBlue+'Anzahl der Dateien : '+str(len(files))+self.nf
+        if len(files) > 1:
+            for f in files:
+                print self.bfBlue+f+self.nf
+                if self.re.search('^'+name, f):
+                    filesString += self.outDir+'/'+f+' '
+            filesString = filesString.strip()
+            concatCommand = 'cat '+filesString+' > '+self.outDir+'/'+name+'.mpg'
+            self.__callSystemCommand(concatCommand)
+        else:
+            self.os.rename(self.outDir+'/'+files[0],self.outDir+'/'+name+'.mpg')
 
-        for f in files:
-            if self.re.search('^'+name, f):
-                self.os.remove(self.outDir+'/'+f)
+        if len(files) > 1:
+            for f in files:
+                if self.re.search('^'+name, f):
+                    self.os.remove(self.outDir+'/'+f)
 
     def convertFile(self,inFile,inDir,outDir):
         nameList = inFile.split('.')
