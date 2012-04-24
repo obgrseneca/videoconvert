@@ -1,0 +1,15 @@
+videoconvert can be installes using
+"make install"
+
+The standard prefix is /usr/local. If you want to install in a different prefix use
+"make install PREFIX=/your/prefix".
+
+videoconvert requires ffmpeg and the lame library to be installed.
+
+To convert a vdr recording, use
+"videoconvert /path/to/recording/directory [name]".
+
+To convert a single multimedia file, use
+"videoconvert /path/to/file [name]".
+
+The target files will be written to the current directory.
