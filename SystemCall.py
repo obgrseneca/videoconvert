@@ -29,8 +29,6 @@ class SystemCall():
         for f in files:
             if self.re.search('^[0-9]+\.vdr$',f):
                 self.prefix = f.split('.')[0]
-                #self.__demultiplex(inDir,f)
-                #self.__multiplex(name,f)
                 print self.bfYellow+'Copying vdr file '+f+' to temporary directory.'+self.nf
                 self.shutil.copy2(inDir+'/'+f,self.outDir+'/'+f)
                 syncCommand = 'ffmpeg -i '+self.outDir+'/'+f+' -acodec copy -vcodec copy -async 2 '
@@ -40,36 +38,6 @@ class SystemCall():
         self.os.chdir(self.currentDir)
         self.joinMultipleFiles(name)
         self.convertFile(name+'.mpg',self.outDir,self.currentDir)
-
-    def __demultiplex(self,inDir,fileName):
-        #self.prefix = fileName.split('.')[0]
-        self.os.chdir(inDir)
-        demultiplexCommand = 'projectx -out '+self.outDir+' '+fileName
-        extractVideoCommand = 'ffmpeg -i '+fileName+' -vcodec copy -an '
-        extractVideoCommand += self.outDir+'/'+self.prefix+'.m2v'
-        extractAudioCommand = 'ffmpeg -i '+fileName+' -acodec copy -vn '
-        extractAudioCommand += self.outDir+'/'+self.prefix+'.'+self.audioCodec
-        #self.__callSystemCommand(demultiplexCommand)
-        self.__callSystemCommand(extractVideoCommand)
-        self.__callSystemCommand(extractAudioCommand)
-
-    def __multiplex(self,name,fileName):
-        self.os.chdir(self.outDir)
-        if self.os.path.exists(self.prefix+'.ac3'):
-            self.audioCodec = 'ac3'
-        else:
-            self.audioCodec = 'mp2'
-        multiplexCommand = 'mplex -f 9 -o '+name+'-'+self.prefix+'-tmp.mpg '
-        multiplexCommand += self.prefix+'.'+self.audioCodec+' '+self.prefix+'.m2v'
-        self.__callSystemCommand(multiplexCommand)
-        syncCommand = 'ffmpeg -i '+name+'-'+self.prefix+'-tmp.mpg -acodec copy -vcodec copy -async 2 '+self.prefix+'.mpg'
-        self.__callSystemCommand(syncCommand)
-        self.os.remove(self.prefix+'-tmp.mpg')
-        
-        files = self.os.listdir(self.outDir)
-        for f in files:
-            if self.re.search('^'+self.prefix, f):
-                self.os.remove(f)
 
     def joinMultipleFiles(self,name):
         files = self.os.listdir(self.outDir)
