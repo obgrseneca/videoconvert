@@ -23,8 +23,9 @@ class SystemCall():
     import shutil
     import string
 
-    def __init__(self,configuration):
+    def __init__(self,configuration,keep):
         self.configuration = configuration
+        self.keep = keep
         self.outDir = self.configuration.getAppTmpDir()
         self.currentDir = self.os.getcwd()
         # FIXME: get this automatically somehow
@@ -50,7 +51,7 @@ class SystemCall():
                 self.shutil.copy2(inDir+'/'+f,self.outDir+'/'+f)
                 syncCommand = 'ffmpeg -i '+self.outDir+'/'+f+' -acodec copy -vcodec copy -async 2 '
                 syncCommand += self.outDir+'/'+name+'-'+self.prefix+'.mpg'
-                self.__callSystemCommand(syncCommand)
+                self.__callSystemCommand(syncCommand,'output')
                 self.os.remove(self.outDir+'/'+f)
         self.os.chdir(self.currentDir)
         self.joinMultipleFiles(name)
@@ -68,7 +69,7 @@ class SystemCall():
                     filesString += self.outDir+'/'+f+' '
             filesString = filesString.strip()
             concatCommand = 'cat '+filesString+' > '+self.outDir+'/'+name+'.mpg'
-            self.__callSystemCommand(concatCommand)
+            self.__callSystemCommand(concatCommand,'output')
         else:
             self.os.rename(self.outDir+'/'+files[0],self.outDir+'/'+name+'.mpg')
 
@@ -96,6 +97,8 @@ class SystemCall():
             scale = '-s '+self.configuration.getResolution()
         vcodec = 'mpeg4'
         framerate = self.configuration.getFramerate()
+        # debug entry
+        # print self.bfBlue + fileEnding + ' - ' + videoFormat +self.nf
         outFile=name+'.'+videoFormat
 
         convertStringTurn1 = 'nice -5  ffmpeg -i '+inDir+'/'+inFile+' '+scale+' -vcodec '+vcodec+' -acodec '
@@ -103,25 +106,32 @@ class SystemCall():
         convertStringTurn2 = 'nice -5  ffmpeg -i '+inDir+'/'+inFile+' '+scale+' -vcodec '+vcodec+' -acodec '
         convertStringTurn2 += acodec+' -b:v '+str(framerate)+'k -pass 2 -f '+videoFormat+' -y '+outDir+'/'+outFile
 
-        self.__callSystemCommand(convertStringTurn1)
-        self.__callSystemCommand(convertStringTurn2)
+        self.__callSystemCommand(convertStringTurn1,'output')
+        self.__callSystemCommand(convertStringTurn2,'output')
 
         self.os.remove(outDir+'/ffmpeg2pass-0.log')
-        self.os.remove(inDir+'/'+inFile)
+        if self.keep == False:
+            self.os.remove(inDir+'/'+inFile)
 
-    def __callSystemCommand(self,systemCommand):
+    def __callSystemCommand(self,systemCommand,mode):
         print self.bfYellow+systemCommand+self.nf
-        convert = self.sp.Popen(
+        syscall = self.sp.Popen(
           systemCommand,
           shell=True,
           stdin=self.sp.PIPE,
           stdout=self.sp.PIPE,
           stderr=self.sp.STDOUT
           )
-        while True:
-            out = convert.stdout.read(1)
-            if out == '' and convert.poll() != None:
-                break
-            if out != '':
-                self.sys.stdout.write(out)
-                self.sys.stdout.flush()
+        if mode == 'output':
+            while True:
+                out = syscall.stdout.read(1)
+                if out == '' and syscall.poll() != None:
+                    break
+                if out != '':
+                    self.sys.stdout.write(out)
+                    self.sys.stdout.flush()
+        elif mode == 'quiet':
+            pass
+
+    def __analyzeInputFile(self,inDir,inFile):
+        pass

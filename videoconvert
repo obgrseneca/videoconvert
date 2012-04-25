@@ -19,33 +19,76 @@
 
 import os
 import sys
+import getopt
 
 # self written imports
 import videoconvert.Conf as Conf
 import videoconvert.SystemCall as SystemCall
 
-# check if the --config option is given
-commandCall = sys.argv.pop(0)
+# check for the command line parameters
 arguments = sys.argv
+commandCall = arguments.pop(0)
+optList, arguments = getopt.getopt(arguments, 'cr:f:', ['configure', 'resolution=', 'framerate=', 'container=', 'audiocodec=', 'videocodec=', 'keep'])
+
+configure=False
+resolution=False
+framerate=False
+container=False
+audioCodec=False
+videoCodec=False
+keep=False
+
+for param in optList:
+    if (param[0] == '--configure' or param[0] == '-c'):
+        configure=True
+    if (param[0] == '--keep'):
+        keep=True
+    if (param[0] == '--resolution' or param[0] == '-r'):
+        resolution=param[1]
+    if (param[0] == '--framerate' or param[0] == '-f'):
+        framerate=param[1]
+    if (param[0] == '--container'):
+        container=param[1]
+    if (param[0] == '--audiocodec'):
+        audioCodec=param[1]
+    if (param[0] == '--videocodec'):
+        videoCodec=param[1]
+
 conf = Conf.Configuration()
 confFile = conf.getConfFile()
 
-# if no config file exists or --config is given ask the user for his preffered settings
+# if no config file exists or --configure or -c is given ask the user for his preffered settings
 # otherwise read the config file
-if ((os.path.exists(confFile) == False) or (len(arguments) >= 1 and arguments[0] == '--config')):
-    arguments.pop(0)
+if (os.path.exists(confFile) == False or configure == True):
     conf.getNewConfig()
 else:
     conf.readConfig()
 
+# set parameters given on the command line
+if framerate != False:
+    conf.setFramerate(framerate)
+if resolution != False:
+    conf.setResolution(resolution)
+if container != False:
+    conf.setContainer(container)
+if audioCodec != False:
+    conf.setAudioCodec(audioCodec)
+if videoCodec != False:
+    conf.setVideoCodec(videoCodec)
+
 # read the remaining arguments from the command line
+argumentIsGiven = False
 if len(arguments) >= 1:
+    argumentIsGiven = True
+    isPath = True
     if os.path.isdir(arguments[0]):
         inDir = arguments.pop(0)
         inFile = ''
-    else:
+    elif os.path.isfile(arguments[0]):
         inFile = arguments.pop(0)
         inDir = ''
+    else:
+        isPath = False
     if len(arguments) >= 1:
         name = arguments.pop(0)
     else:
@@ -53,13 +96,14 @@ if len(arguments) >= 1:
 
     # if a directory is given try to sync vdr files in that directory and convert them
     # if a file is given only convert it
-    systemCall = SystemCall.SystemCall(conf)
-    if inDir != '':
-        systemCall.sync(inDir,name)
-    elif inFile != '':
-        systemCall.convertFile(inFile,os.getcwd(),os.getcwd())
+    if isPath:
+        systemCall = SystemCall.SystemCall(conf,keep)
+        if inDir != '':
+            systemCall.sync(inDir,name)
+        elif inFile != '':
+            systemCall.convertFile(inFile,os.getcwd(),os.getcwd())
 
-else:
-    print 'Usage : '+commandCall+' [--config] <input directory> [<name>]'
-
-#print conf.toString()
+if (argumentIsGiven == False or isPath == False):
+    print 'Usage : '+commandCall+' [-c|--config] [--keep] [-f <framerate>|--framerate=<framerate>] [-r <resolution>|--resolution=<resolution>] <input directory> [<name>]'
+    print
+    print conf.toString()

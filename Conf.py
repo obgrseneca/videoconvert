@@ -26,6 +26,10 @@ class Configuration():
         self.appTmpDir = self.applicationDir+'/tmp'
         self.framerate = 890
         self.resolution = '512x384'
+        self.container = 'avi'
+        self.audioCodec = 'libmp3lame'
+        self.videoCodec = 'mpeg4'
+
 
         self.bf = '\033[0;1m'
         self.bfBlue = '\033[34;1m'
@@ -78,15 +82,52 @@ class Configuration():
         return self.appTmpDir
 
     def getFramerate(self):
+        print self.bfBlue + 'framerate is set to ' + str(self.framerate) + self.nf
         return self.framerate
 
     def getResolution(self):
+        print self.bfBlue + 'resolution is set to ' + str(self.resolution) + self.nf
         return self.resolution
+
+    def getContainer(self):
+        print self.bfBlue + 'container is set to ' + str(self.container) + self.nf
+        return self.container
+
+    def getAudioCodec(self):
+        print self.bfBlue + 'audio codec is set to ' + str(self.audioCodec) + self.nf
+        return self.audioCodec
+
+    def getVideoCodec(self):
+        print self.bfBlue + 'video codec is set to ' + str(self.videoCodec) + self.nf
+        return self.videoCodec
+
+    def setFramerate(self,framerate):
+        self.framerate = framerate
+        print self.bfBlue + 'Set framerate to ' + str(self.framerate) + self.nf
+
+    def setResolution(self,resolution):
+        print self.bfBlue + 'Set resolution to ' + resolution + self.nf
+        self.resolution = resolution
+
+    def setContainer(self,container):
+        print self.bfBlue + 'Set container format to ' + container + self.nf
+        self.container = container
+
+    def setAudioCodec(self,audioCodec):
+        print self.bfBlue + 'Set audio codec to ' + audioCodec + self.nf
+        self.audioCodec = audioCodec
+
+    def setVideoCodec(self,videoCodec):
+        print self.bfBlue + 'Set video codec to ' + videoCodec + self.nf
+        self.videoCodec = videoCodec
 
     def toString(self):
         returnString = '*****  Configuration object  *****\n'
         returnString += 'framerate      :   '+str(self.framerate)+'\n'
         returnString += 'resolution     :   '+str(self.resolution)+'\n'
+        returnString += 'container      :   '+str(self.container)+'\n'
+        returnString += 'audioCodec     :   '+str(self.audioCodec)+'\n'
+        returnString += 'videoCodec     :   '+str(self.videoCodec)+'\n'
         returnString += 'confFile       :   '+str(self.confFile)+'\n'
         returnString += 'appTmpDir      :   '+str(self.appTmpDir)+'\n'
         return returnString
