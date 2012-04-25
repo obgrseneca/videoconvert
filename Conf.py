@@ -19,7 +19,7 @@ class Configuration():
     import re
     import os
 
-    def __init__(self):
+    def __init__(self,debug):
         self.userHome = self.os.environ['HOME']
         self.applicationDir = self.userHome+'/.videoconvert'
         self.confFile = self.applicationDir+'/config'
@@ -29,6 +29,7 @@ class Configuration():
         self.container = 'avi'
         self.audioCodec = 'libmp3lame'
         self.videoCodec = 'mpeg4'
+        self.debug = debug
 
 
         self.bf = '\033[0;1m'

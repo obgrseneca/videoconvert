@@ -23,7 +23,7 @@ class SystemCall():
     import shutil
     import string
 
-    def __init__(self,configuration,keep):
+    def __init__(self,configuration,keep,debug):
         self.configuration = configuration
         self.keep = keep
         self.outDir = self.configuration.getAppTmpDir()
@@ -36,6 +36,7 @@ class SystemCall():
         self.yellow = '\033[0;33;40m'
         self.nf = '\033[0;0m'
         self.prefix = ''
+        self.debug = debug
 
     def sync(self,inDir,name):
         if self.os.path.isabs(inDir):

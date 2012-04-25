@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with videoconvert.  If not, see <http://www.gnu.org/licenses/>.
 
+videoconvertVersion = '0.1'
+
 import os
 import sys
 import getopt
@@ -28,7 +30,9 @@ import videoconvert.SystemCall as SystemCall
 # check for the command line parameters
 arguments = sys.argv
 commandCall = arguments.pop(0)
-optList, arguments = getopt.getopt(arguments, 'cr:f:', ['configure', 'resolution=', 'framerate=', 'container=', 'audiocodec=', 'videocodec=', 'keep'])
+optList, arguments = getopt.getopt(arguments, 'cvhr:f:', ['configure', 'resolution=',
+  'framerate=', 'container=', 'audiocodec=', 'videocodec=', 'keep', 'debug', 'help',
+  'version'])
 
 configure=False
 resolution=False
@@ -37,6 +41,9 @@ container=False
 audioCodec=False
 videoCodec=False
 keep=False
+debug=False
+outputHelp=False
+version=False
 
 for param in optList:
     if (param[0] == '--configure' or param[0] == '-c'):
@@ -53,8 +60,14 @@ for param in optList:
         audioCodec=param[1]
     if (param[0] == '--videocodec'):
         videoCodec=param[1]
+    if (param[0] == '--debug'):
+        debug=True
+    if (param[0] == '--help' or param[0] == '-h'):
+        outputHelp=True
+    if (param[0] == '--version' or param[0] == '-v'):
+        version=videoconvertVersion
 
-conf = Conf.Configuration()
+conf = Conf.Configuration(debug)
 confFile = conf.getConfFile()
 
 # if no config file exists or --configure or -c is given ask the user for his preffered settings
@@ -78,7 +91,7 @@ if videoCodec != False:
 
 # read the remaining arguments from the command line
 argumentIsGiven = False
-if len(arguments) >= 1:
+if (len(arguments) >= 1 and outputHelp == False and version == False):
     argumentIsGiven = True
     isPath = True
     if os.path.isdir(arguments[0]):
@@ -97,13 +110,17 @@ if len(arguments) >= 1:
     # if a directory is given try to sync vdr files in that directory and convert them
     # if a file is given only convert it
     if isPath:
-        systemCall = SystemCall.SystemCall(conf,keep)
+        systemCall = SystemCall.SystemCall(conf,keep,debug)
         if inDir != '':
             systemCall.sync(inDir,name)
         elif inFile != '':
             systemCall.convertFile(inFile,os.getcwd(),os.getcwd())
 
-if (argumentIsGiven == False or isPath == False):
+if ((argumentIsGiven == False or isPath == False) and outputHelp == False and version == False):
     print 'Usage : '+commandCall+' [-c|--config] [--keep] [-f <framerate>|--framerate=<framerate>] [-r <resolution>|--resolution=<resolution>] <input directory> [<name>]'
-    print
+if debug:
     print conf.toString()
+if outputHelp:
+    print 'Help, I need somebody\'s help...'
+if version != False:
+    print 'videoconvert version ' + version
