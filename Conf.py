@@ -91,7 +91,7 @@ class Configuration():
         print '['+self.audioCodec+']'
         userInput = raw_input(self.bfBlue+'Audio codec : '+self.nf).strip()
         if userInput != '':
-            self.audio codec = userInput
+            self.audioCodec = userInput
         print 'Enter the video codec for the target video'
         print '['+self.videoCodec+']'
         userInput = raw_input(self.bfBlue+'Video codec : '+self.nf).strip()
