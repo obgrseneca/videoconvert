@@ -48,14 +48,23 @@ class Configuration():
             if self.re.search('^#',l) == False:
                 if self.re.search('^framerate',l):
                     self.framerate = l.split('=')[1].strip()
-                if self.re.search('^resolution',l):
+                elif self.re.search('^resolution',l):
                     self.resolution = l.split('=').strip()
+                elif self.re.search('^container',l):
+                    self.container = l.split('=').strip()
+                elif self.re.search('^audiocodec',l):
+                    self.audioCodec = l.split('=').strip()
+                elif self.re.search('^videocodec',l):
+                    self.videoCodec = l.split('=').strip()
 
     def __writeConfig(self):
         config = open(self.confFile,'w')
         config.write('# videoconvert configuration file\n')
         config.write('framerate = '+str(self.framerate)+'\n')
         config.write('resolution = '+str(self.resolution)+'\n')
+        config.write('container = '+str(self.container)+'\n')
+        config.write('audiocodec = '+str(self.audioCodec)+'\n')
+        config.write('videocodec = '+str(self.videoCodec)+'\n')
         config.close
 
     def getNewConfig(self):
@@ -70,9 +79,26 @@ class Configuration():
             self.framerate = userInput
         print 'Enter the resolution for the target video'
         print '['+self.resolution+']'
-        userInput = raw_input(self.bfBlue+'Scale : '+self.nf).strip()
+        userInput = raw_input(self.bfBlue+'Resolution : '+self.nf).strip()
         if userInput != '':
             self.resolution = userInput
+        print 'Enter the container for the target video'
+        print '['+self.container+']'
+        userInput = raw_input(self.bfBlue+'Container : '+self.nf).strip()
+        if userInput != '':
+            self.container = userInput
+        print 'Enter the audio codec for the target video'
+        print '['+self.audioCodec+']'
+        userInput = raw_input(self.bfBlue+'Audio codec : '+self.nf).strip()
+        if userInput != '':
+            self.audio codec = userInput
+        print 'Enter the video codec for the target video'
+        print '['+self.videoCodec+']'
+        userInput = raw_input(self.bfBlue+'Video codec : '+self.nf).strip()
+        if userInput != '':
+            self.videoCodec = userInput
+
+
         self.__writeConfig()
 
     def getConfFile(self):

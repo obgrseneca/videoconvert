@@ -84,18 +84,18 @@ class SystemCall():
         name = self.string.join(nameList,'.')
 
         if fileEnding == 'wmv':
-            acodec='libmp3lame'
-            videoFormat='avi'
+            acodec=self.configuration.getAudioCodec()
+            videoFormat=self.configuration.getContainer()
             scale=''
         elif fileEnding == 'mpg':
             if self.audioCodec == 'mp2':
-                acodec = 'libmp3lame'
-                videoFormat = 'avi'
+                acodec = self.configuration.getAudioCodec()
+                videoFormat = self.configuration.getContainer()
             else:
                 acodec = 'copy'
                 videoFormat = 'mp4'
             scale = '-s '+self.configuration.getResolution()
-        vcodec = 'mpeg4'
+        vcodec = self.configuration.getVideoCodec()
         framerate = self.configuration.getFramerate()
         # debug entry
         # print self.bfBlue + fileEnding + ' - ' + videoFormat +self.nf
