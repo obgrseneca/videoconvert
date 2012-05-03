@@ -44,13 +44,14 @@ class SystemCall():
         else:
             inDir = self.currentDir+'/'+inDir
         files = self.os.listdir(inDir)
+        files.sort()
         self.currentDir = self.os.getcwd()
         for f in files:
             if self.re.search('^[0-9]+\.vdr$',f):
                 self.prefix = f.split('.')[0]
                 print self.bfYellow+'Copying vdr file '+f+' to temporary directory.'+self.nf
                 self.shutil.copy2(inDir+'/'+f,self.outDir+'/'+f)
-                syncCommand = 'ffmpeg -i '+self.outDir+'/'+f+' -acodec copy -vcodec copy -async 2 '
+                syncCommand = 'ffmpeg -i '+self.outDir+'/'+f+' -acodec mp2 -vcodec copy -async 2 '
                 syncCommand += self.outDir+'/'+name+'-'+self.prefix+'.mpg'
                 self.__callSystemCommand(syncCommand,'output')
                 self.os.remove(self.outDir+'/'+f)
@@ -60,12 +61,14 @@ class SystemCall():
 
     def joinMultipleFiles(self,name):
         files = self.os.listdir(self.outDir)
+        files.sort()
         filesString = ''
-        # TODO: just a debug output, has to be removed
-        print self.bfBlue+'Anzahl der Dateien : '+str(len(files))+self.nf
+        if self.debug:
+            print self.bfBlue+'Anzahl der Dateien : '+str(len(files))+self.nf
         if len(files) > 1:
             for f in files:
-                print self.bfBlue+f+self.nf
+                if self.debug:
+                    print self.bfBlue+f+self.nf
                 if self.re.search('^'+name, f):
                     filesString += self.outDir+'/'+f+' '
             filesString = filesString.strip()
@@ -98,8 +101,8 @@ class SystemCall():
             scale = '-s '+self.configuration.getResolution()
         vcodec = self.configuration.getVideoCodec()
         framerate = self.configuration.getFramerate()
-        # debug entry
-        # print self.bfBlue + fileEnding + ' - ' + videoFormat +self.nf
+        if self.debug:
+            print self.bfBlue + 'File ending: ' + fileEnding + ' - target file ending: ' + videoFormat +self.nf
         outFile=name+'.'+videoFormat
 
         convertStringTurn1 = 'nice -5  ffmpeg -i '+inDir+'/'+inFile+' '+scale+' -vcodec '+vcodec+' -acodec '
